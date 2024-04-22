@@ -81,7 +81,7 @@ fun Content(cardItems: List<Recipe>, dessertRecipes: List<Recipe>, bakingRecipes
                     title = {
                         Text(text = "Recipe overview")
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
                 )
             }
         ) {
@@ -105,7 +105,7 @@ fun RecipeCollection(name: String, recipes: List<Recipe>) {
     Surface(
         shadowElevation = dimensionResource(id = com.intuit.sdp.R.dimen._10sdp),
         shape = RoundedCornerShape(dimensionResource(id = com.intuit.sdp.R.dimen._20sdp)),
-        color = MaterialTheme.colorScheme.tertiaryContainer,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_med))
     ) {
         Column(
