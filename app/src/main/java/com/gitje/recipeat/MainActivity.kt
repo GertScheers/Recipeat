@@ -1,7 +1,6 @@
 package com.gitje.recipeat
 
 import android.os.Bundle
-import android.widget.ImageButton
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -9,13 +8,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -85,11 +89,13 @@ fun Content(cardItems: List<Recipe>, dessertRecipes: List<Recipe>, bakingRecipes
                 )
             }
         ) {
+            val topPadding =
+                it.calculateTopPadding() + dimensionResource(id = com.intuit.sdp.R.dimen._10sdp)
             Column(
                 Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(it)
+                    .padding(top = topPadding)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
                 RecipeCollection(name = "General recipes", recipes = cardItems)
@@ -102,43 +108,81 @@ fun Content(cardItems: List<Recipe>, dessertRecipes: List<Recipe>, bakingRecipes
 
 @Composable
 fun RecipeCollection(name: String, recipes: List<Recipe>) {
-    Surface(
-        shadowElevation = dimensionResource(id = com.intuit.sdp.R.dimen._10sdp),
-        shape = RoundedCornerShape(dimensionResource(id = com.intuit.sdp.R.dimen._20sdp)),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_med))
-    ) {
-        Column(
-            Modifier.padding(
-                start = dimensionResource(id = com.intuit.sdp.R.dimen._10sdp),
-                end = dimensionResource(id = com.intuit.sdp.R.dimen._10sdp),
-                bottom = dimensionResource(id = com.intuit.sdp.R.dimen._20sdp),
-                top = 0.dp
-            )
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = name, modifier = Modifier.padding(10.dp))
-                IconButton(
-                    onClick = { /*Add new item*/ },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = "Add"
-                    )
-                }
-            }
+    val listState = rememberLazyListState()
 
+    val frontArrowVisible = remember(listState.isScrollInProgress) {
+        derivedStateOf {
+            listState.firstVisibleItemIndex > 0
+        }
+    }
+
+    val rearArrowVisible = remember(listState.isScrollInProgress) {
+        derivedStateOf {
+            (listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) < recipes.size-1
+        }
+    }
+
+    Column(
+        Modifier.padding(
+            start = dimensionResource(id = com.intuit.sdp.R.dimen._10sdp),
+            end = dimensionResource(id = com.intuit.sdp.R.dimen._10sdp),
+            bottom = dimensionResource(id = com.intuit.sdp.R.dimen._20sdp),
+            top = 0.dp
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = dimensionResource(id = com.intuit.sdp.R.dimen._5sdp)),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = name, modifier = Modifier.padding(10.dp))
+            IconButton(
+                onClick = { /*Add new item*/ },
+                colors = IconButtonDefaults.iconButtonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_add),
+                    contentDescription = "Add"
+                )
+            }
+        }
+
+        Box {
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = com.intuit.sdp.R.dimen._20sdp))
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = com.intuit.sdp.R.dimen._20sdp)),
+                modifier = Modifier
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.secondaryContainer,
+                                MaterialTheme.colorScheme.tertiaryContainer
+                            )
+                        ), RoundedCornerShape(dimensionResource(id = com.intuit.sdp.R.dimen._20sdp))
+                    )
+                    .padding(vertical = dimensionResource(id = R.dimen.padding_med), horizontal = dimensionResource(id = com.intuit.sdp.R.dimen._20sdp)),
+                state = listState
             ) {
                 items(items = recipes, key = { item -> item.id }) {
                     RecipeCard(name = it.name, image = "")
                 }
             }
+
+            if (frontArrowVisible.value)
+                Image(
+                    painter = painterResource(id = R.drawable.ic_arrow_next),
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .rotate(180f),
+                    contentDescription = null
+                )
+
+            if (rearArrowVisible.value)
+                Image(
+                    painter = painterResource(id = R.drawable.ic_arrow_next),
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    contentDescription = null
+                )
         }
     }
 }
